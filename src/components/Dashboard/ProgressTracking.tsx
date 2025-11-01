@@ -48,7 +48,7 @@ export function ProgressTracking() {
       .eq('user_id', user.id);
 
     let streak = 0;
-    let checkDate = new Date();
+    const checkDate = new Date();
     const dateMap = new Map(routines?.map(r => [r.date, r.completion_rate]) || []);
 
     while (true) {

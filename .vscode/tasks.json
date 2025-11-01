@@ -1,0 +1,31 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "set-gemini-secret",
+			"type": "shell",
+			"command": "supabase"
+		},
+		{
+			"label": "set-gemini-secret",
+			"type": "shell",
+			"command": "supabase",
+			"args": [
+				"secrets",
+				"set",
+				"GEMINI_API_KEY=AIzaSyDc2f40G3xGuPh9AxCJr2l4OwxCbLaGM00"
+			]
+		},
+		{
+			"label": "set-gemini-secret",
+			"type": "shell",
+			"command": "npx",
+			"args": [
+				"supabase",
+				"secrets",
+				"set",
+				"GEMINI_API_KEY=AIzaSyDc2f40G3xGuPh9AxCJr2l4OwxCbLaGM00"
+			]
+		}
+	]
+}

@@ -5,7 +5,10 @@ import { DailyCheckIn } from './DailyCheckIn';
 import { ProgressTracking } from './ProgressTracking';
 import { ManualActivityLog } from './ManualActivityLog';
 import { WellnessAssistant } from './WellnessAssistant';
-import { LogOut, User, Sparkles } from 'lucide-react';
+
+
+
+import { LogOut, Sparkles } from 'lucide-react';
 
 export function Dashboard() {
   const { signOut } = useAuth();
