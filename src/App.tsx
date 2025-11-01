@@ -5,11 +5,13 @@ import { LoginForm } from './components/Auth/LoginForm';
 import { SignUpForm } from './components/Auth/SignUpForm';
 import { OnboardingFlow } from './components/Onboarding/OnboardingFlow';
 import { Dashboard } from './components/Dashboard/Dashboard';
+import { LandingPage } from './components/Landing/LandingPage';
 
 function App() {
   const { user, loading: authLoading } = useAuth();
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const [showAuth, setShowAuth] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -44,11 +46,17 @@ function App() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-green-50 flex items-center justify-center p-4">
-        {authMode === 'login' ? (
-          <LoginForm onToggleMode={() => setAuthMode('signup')} />
+      <div>
+        {!showAuth ? (
+          <LandingPage onGetStarted={() => setShowAuth(true)} />
         ) : (
-          <SignUpForm onToggleMode={() => setAuthMode('login')} />
+          <div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-green-50 flex items-center justify-center p-4">
+            {authMode === 'login' ? (
+              <LoginForm onToggleMode={() => setAuthMode('signup')} />
+            ) : (
+              <SignUpForm onToggleMode={() => setAuthMode('login')} />
+            )}
+          </div>
         )}
       </div>
     );
