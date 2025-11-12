@@ -5,17 +5,27 @@ import { DailyCheckIn } from './DailyCheckIn';
 import { ProgressTracking } from './ProgressTracking';
 import { ManualActivityLog } from './ManualActivityLog';
 import { WellnessAssistant } from './WellnessAssistant';
-
-
+import PersonaGallery from '../Personas/PersonaGallery';
+import PersonaChat from '../Personas/PersonaChat';
+import { Persona } from '../../lib/personas';
 
 import { LogOut, Sparkles } from 'lucide-react';
 
 export function Dashboard() {
   const { signOut } = useAuth();
   const [refreshKey, setRefreshKey] = useState(0);
+  const [selectedPersona, setSelectedPersona] = useState<Persona | null>(null);
 
   const handleActivityComplete = () => {
     setRefreshKey(prev => prev + 1);
+  };
+
+  const handlePersonaSelect = (persona: Persona) => {
+    setSelectedPersona(persona);
+  };
+
+  const handleCloseChat = () => {
+    setSelectedPersona(null);
   };
 
   return (
@@ -52,6 +62,9 @@ export function Dashboard() {
             Let's continue your wellness journey today
           </p>
         </div>
+
+        {/* Persona Gallery Section */}
+        <PersonaGallery onPersonaSelect={handlePersonaSelect} />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-2 space-y-6">
@@ -91,6 +104,11 @@ export function Dashboard() {
       </main>
 
       <WellnessAssistant />
+
+      {/* Persona Chat Modal */}
+      {selectedPersona && (
+        <PersonaChat persona={selectedPersona} onClose={handleCloseChat} />
+      )}
     </div>
   );
 }

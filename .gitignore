@@ -197,3 +197,114 @@ coverage/
 .ai-temp/
 
 # Add more here as needed
+.env*.local
+
+# ============================================
+# SECURITY & SENSITIVE FILES
+# ============================================
+
+# All Markdown documentation files (may contain sensitive info)
+*.md
+!README.md
+
+# Environment and configuration files
+.env
+.env.*
+*.env
+config.local.js
+config.local.ts
+secrets.json
+credentials.json
+*.key
+*.pem
+*.p12
+*.pfx
+*.cer
+*.crt
+
+# API Keys and tokens
+*apikey*
+*api-key*
+*api_key*
+*secret*
+*token*
+.secrets
+secrets/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+*.sql
+!**/migrations/*.sql
+
+# Supabase specific
+.supabase/
+supabase/.env
+supabase/config.toml
+supabase/functions/**/.env
+
+# Firebase/Google credentials
+*-firebase-adminsdk-*.json
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+service-account*.json
+gcloud-credentials.json
+
+# AWS credentials
+.aws/
+aws-credentials.json
+*.pem
+
+# Private scripts and configurations
+scripts/deploy*.sh
+scripts/deploy*.ps1
+configure-*.ps1
+*.local.*
+
+# Test reports that may contain sensitive data
+playwright-report/
+test-results/
+coverage/
+*.log
+
+# IDE and editor specific (may contain project secrets)
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Backup files
+*.backup
+*.bak
+*.old
+*~
+
+# Compiled output that may contain embedded secrets
+*.map
+*.min.js
+*.min.css
+
+# Package lock files (can expose dependency vulnerabilities)
+# Uncomment if you want to ignore these:
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+.Trash-*
