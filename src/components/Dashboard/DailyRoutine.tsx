@@ -1,7 +1,17 @@
+/**
+ * DailyRoutine Component
+ * 
+ * Displays and manages the user's daily wellness routine with design system components.
+ * Requirements: 2.1, 2.3, 8.5
+ */
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { CheckCircle2, Circle, Sparkles, Plus } from 'lucide-react';
+import { Card } from '../../design-system/components/Card/Card';
+import { Button } from '../../design-system/components/Button/Button';
+import { Skeleton } from '../../design-system/components/Skeleton/Skeleton';
 
 interface Activity {
   id: string;
@@ -176,12 +186,12 @@ export function DailyRoutine({ onActivityComplete }: DailyRoutineProps) {
 
   const getCategoryColor = (category: string) => {
     const colors = {
-      physical: 'bg-blue-100 text-blue-700 border-blue-200',
-      mental: 'bg-green-100 text-green-700 border-green-200',
-      nutritional: 'bg-orange-100 text-orange-700 border-orange-200',
-      sleep: 'bg-purple-100 text-purple-700 border-purple-200',
+      physical: 'bg-blue-100 dark:bg-blue-950/30 text-blue-700 dark:text-blue-300 border-blue-200 dark:border-blue-800',
+      mental: 'bg-green-100 dark:bg-green-950/30 text-green-700 dark:text-green-300 border-green-200 dark:border-green-800',
+      nutritional: 'bg-orange-100 dark:bg-orange-950/30 text-orange-700 dark:text-orange-300 border-orange-200 dark:border-orange-800',
+      sleep: 'bg-purple-100 dark:bg-purple-950/30 text-purple-700 dark:text-purple-300 border-purple-200 dark:border-purple-800',
     };
-    return colors[category as keyof typeof colors] || 'bg-gray-100 text-gray-700 border-gray-200';
+    return colors[category as keyof typeof colors] || 'bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 border-neutral-200 dark:border-neutral-700';
   };
 
   const completedCount = activities.filter((a) => a.completed).length;
@@ -189,41 +199,43 @@ export function DailyRoutine({ onActivityComplete }: DailyRoutineProps) {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
+      <Card variant="elevated" padding="md">
+        <div className="space-y-4">
+          <Skeleton width="33%" height="24px" />
+          <Skeleton height="80px" />
+          <Skeleton height="80px" />
+          <Skeleton height="80px" />
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <Card variant="elevated" padding="md">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-            <Sparkles className="w-6 h-6 text-teal-500 mr-2" />
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 flex items-center">
+            <Sparkles className="w-6 h-6 text-primary-500 mr-2" aria-hidden="true" />
             Today's Wellness Routine
           </h2>
-          <p className="text-gray-600 mt-1">
+          <p className="text-neutral-600 dark:text-neutral-400 mt-1">
             {completedCount} of {totalCount} activities completed
           </p>
         </div>
-        <button
+        <Button
+          variant="tertiary"
+          size="md"
           onClick={generateNewRoutine}
-          className="flex items-center gap-2 px-4 py-2 bg-teal-50 text-teal-600 rounded-lg hover:bg-teal-100 transition"
+          icon={<Plus className="w-4 h-4" />}
         >
-          <Plus className="w-4 h-4" />
           Regenerate
-        </button>
+        </Button>
       </div>
 
       <div className="mb-6">
-        <div className="w-full bg-gray-200 rounded-full h-3">
+        <div className="w-full bg-neutral-200 dark:bg-neutral-700 rounded-full h-3">
           <div
-            className="bg-teal-500 h-3 rounded-full transition-all duration-500"
+            className="bg-primary-500 h-3 rounded-full transition-all duration-500"
             style={{ width: `${(completedCount / totalCount) * 100}%` }}
           />
         </div>
@@ -234,30 +246,41 @@ export function DailyRoutine({ onActivityComplete }: DailyRoutineProps) {
           <div
             key={activity.id}
             className={`border-2 rounded-lg p-4 transition cursor-pointer ${
-              activity.completed ? 'bg-teal-50 border-teal-200' : 'border-gray-200 hover:border-gray-300'
+              activity.completed 
+                ? 'bg-primary-50 dark:bg-primary-950/30 border-primary-200 dark:border-primary-800' 
+                : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600'
             }`}
             onClick={() => toggleActivity(activity.id)}
+            role="button"
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                toggleActivity(activity.id);
+              }
+            }}
+            aria-label={`${activity.completed ? 'Mark as incomplete' : 'Mark as complete'}: ${activity.title}`}
           >
             <div className="flex items-start">
               <div className="mt-1 mr-4">
                 {activity.completed ? (
-                  <CheckCircle2 className="w-6 h-6 text-teal-500" />
+                  <CheckCircle2 className="w-6 h-6 text-primary-500" aria-hidden="true" />
                 ) : (
-                  <Circle className="w-6 h-6 text-gray-400" />
+                  <Circle className="w-6 h-6 text-neutral-400 dark:text-neutral-500" aria-hidden="true" />
                 )}
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h3 className={`font-semibold text-gray-800 ${activity.completed ? 'line-through' : ''}`}>
+                  <h3 className={`font-semibold text-neutral-900 dark:text-neutral-50 ${activity.completed ? 'line-through' : ''}`}>
                     {activity.title}
                   </h3>
                   <span className={`text-xs px-2 py-1 rounded-full border ${getCategoryColor(activity.category)}`}>
                     {activity.category}
                   </span>
                 </div>
-                <p className="text-sm text-gray-600 mb-2">{activity.description}</p>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400 mb-2">{activity.description}</p>
                 {activity.duration > 0 && (
-                  <p className="text-xs text-gray-500">{activity.duration} minutes</p>
+                  <p className="text-xs text-neutral-500 dark:text-neutral-500">{activity.duration} minutes</p>
                 )}
               </div>
             </div>
@@ -267,9 +290,9 @@ export function DailyRoutine({ onActivityComplete }: DailyRoutineProps) {
 
       {activities.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No activities for today. Click Regenerate to create your routine!</p>
+          <p className="text-neutral-500 dark:text-neutral-400">No activities for today. Click Regenerate to create your routine!</p>
         </div>
       )}
-    </div>
+    </Card>
   );
 }

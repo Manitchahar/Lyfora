@@ -160,6 +160,8 @@ playwright/.cache/
 
 # Supabase
 .supabase/
+supabase/.env
+supabase/config.toml
 
 # Build outputs
 dist/
@@ -203,14 +205,24 @@ coverage/
 # SECURITY & SENSITIVE FILES
 # ============================================
 
-# All Markdown documentation files (may contain sensitive info)
-*.md
+# Deployment and configuration guides (may contain sensitive info)
+*DEPLOY*.md
+*DEPLOYMENT*.md
+*CONFIG*.md
+*SECRET*.md
+*PRIVATE*.md
+*CREDENTIALS*.md
+
+# Keep only essential documentation
 !README.md
 
 # Environment and configuration files
 .env
-.env.*
-*.env
+.env.local
+.env.*.local
+.env.development.local
+.env.test.local
+.env.production.local
 config.local.js
 config.local.ts
 secrets.json
@@ -230,6 +242,9 @@ credentials.json
 *token*
 .secrets
 secrets/
+
+# Vercel deployment metadata (not config)
+.vercel/
 
 # Database files
 *.db

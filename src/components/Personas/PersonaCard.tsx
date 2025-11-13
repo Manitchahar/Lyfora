@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import { Persona } from '../../lib/personas';
 
 interface PersonaCardProps {
@@ -15,23 +16,26 @@ const colorMap: Record<string, string> = {
   purple: 'bg-purple-100',
 };
 
-export default function PersonaCard({ persona, onClick }: PersonaCardProps) {
-  const iconBgColor = colorMap[persona.color] || 'bg-gray-100';
+const PersonaCard = forwardRef<HTMLDivElement, PersonaCardProps>(
+  ({ persona, onClick }, ref) => {
+    const iconBgColor = colorMap[persona.color] || 'bg-gray-100';
 
-  return (
-    <div
-      onClick={onClick}
-      className="w-[260px] sm:w-[280px] h-[340px] sm:h-[360px] bg-white rounded-2xl shadow-sm border border-black/[0.06] p-5 sm:p-6 cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col touch-manipulation"
-      role="button"
-      tabIndex={0}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onClick();
-        }
-      }}
-      aria-label={`Chat with ${persona.name}, ${persona.title}`}
-    >
+    return (
+      <div
+        ref={ref}
+        id={`persona-card-${persona.id}`}
+        onClick={onClick}
+        className="w-[260px] sm:w-[280px] h-[340px] sm:h-[360px] bg-white rounded-2xl shadow-sm border border-black/[0.06] p-5 sm:p-6 cursor-pointer transition-all duration-300 ease-out hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] flex flex-col touch-manipulation"
+        role="button"
+        tabIndex={0}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            onClick();
+          }
+        }}
+        aria-label={`Chat with ${persona.name}, ${persona.title}`}
+      >
       {/* Icon Circle */}
       <div className="flex justify-center mb-4 sm:mb-6">
         <div className={`w-14 h-14 sm:w-16 sm:h-16 ${iconBgColor} rounded-full flex items-center justify-center text-2xl sm:text-3xl transition-transform duration-200 ease-out`}>
@@ -73,5 +77,10 @@ export default function PersonaCard({ persona, onClick }: PersonaCardProps) {
         </span>
       </div>
     </div>
-  );
-}
+    );
+  }
+);
+
+PersonaCard.displayName = 'PersonaCard';
+
+export default PersonaCard;

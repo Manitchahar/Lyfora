@@ -1,11 +1,33 @@
+import { useRef, useCallback } from 'react';
 import { PERSONAS, Persona } from '../../lib/personas';
 import PersonaCard from './PersonaCard';
+import { useModalNavigation } from '../../hooks/useModalNavigation';
 
 interface PersonaGalleryProps {
-  onPersonaSelect: (persona: Persona) => void;
+  onPersonaSelect?: (persona: Persona) => void;
 }
 
 export default function PersonaGallery({ onPersonaSelect }: PersonaGalleryProps) {
+  const navigateToModal = useModalNavigation();
+  const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+
+  // Memoize click handler to prevent unnecessary re-renders (Requirement 17.3)
+  const handlePersonaClick = useCallback((persona: Persona) => {
+    // Store the triggering element for focus restoration (Requirement 7.4)
+    const cardElement = cardRefs.current.get(persona.id);
+    if (cardElement) {
+      // Store in sessionStorage so ModalRoute can restore focus
+      sessionStorage.setItem('modal-trigger-element-id', `persona-card-${persona.id}`);
+    }
+
+    // Use modal routing if no callback provided
+    if (onPersonaSelect) {
+      onPersonaSelect(persona);
+    } else {
+      navigateToModal(`/dashboard/personas/${persona.id}`);
+    }
+  }, [onPersonaSelect, navigateToModal]);
+
   return (
     <section className="w-full py-8 sm:py-12 px-4 sm:px-6 bg-gradient-to-b from-white to-gray-50">
       {/* Section Header */}
@@ -39,8 +61,15 @@ export default function PersonaGallery({ onPersonaSelect }: PersonaGalleryProps)
                 className="snap-center snap-always flex-shrink-0 first:ml-2 last:mr-2"
               >
                 <PersonaCard
+                  ref={(el) => {
+                    if (el) {
+                      cardRefs.current.set(persona.id, el);
+                    } else {
+                      cardRefs.current.delete(persona.id);
+                    }
+                  }}
                   persona={persona}
-                  onClick={() => onPersonaSelect(persona)}
+                  onClick={() => handlePersonaClick(persona)}
                 />
               </div>
             ))}

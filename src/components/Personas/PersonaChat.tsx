@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import ReactMarkdown from 'react-markdown';
-import { X, Send } from 'lucide-react';
+import { Send } from 'lucide-react';
 import { Persona } from '../../lib/personas';
 
 interface Message {
@@ -12,10 +12,9 @@ interface Message {
 
 interface PersonaChatProps {
   persona: Persona;
-  onClose: () => void;
 }
 
-export default function PersonaChat({ persona, onClose }: PersonaChatProps) {
+export default function PersonaChat({ persona }: PersonaChatProps) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -180,136 +179,118 @@ export default function PersonaChat({ persona, onClose }: PersonaChatProps) {
 
   return (
     <div 
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm transition-opacity duration-200 ease-out p-4 sm:p-0"
-      onClick={onClose}
+      className="flex flex-col h-full max-h-[70vh]"
+      role="region"
+      aria-labelledby="chat-title"
     >
-      {/* Chat Container */}
-      <div 
-        className="w-full sm:w-[90vw] max-w-[480px] h-[90vh] sm:h-[85vh] max-h-[800px] bg-white rounded-2xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden transition-transform duration-300 ease-out"
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-labelledby="chat-title"
-        aria-modal="true"
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-gray-100 bg-white flex-shrink-0">
-          <div className="flex items-center gap-2 sm:gap-3 min-w-0">
-            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl sm:text-2xl flex-shrink-0">
-              {persona.icon}
-            </div>
-            <div className="min-w-0">
-              <h3 
-                id="chat-title"
-                className="text-sm sm:text-base font-semibold text-gray-900 tracking-tight leading-tight truncate"
-              >
-                {persona.name}
-              </h3>
-              <p className="text-xs text-gray-500 font-medium truncate">{persona.title}</p>
-            </div>
-          </div>
-          <button
-            onClick={onClose}
-            className="w-8 h-8 sm:w-9 sm:h-9 rounded-full hover:bg-gray-100 flex items-center justify-center transition-all duration-200 ease-out active:scale-95 flex-shrink-0 touch-manipulation"
-            aria-label="Close chat"
+      {/* Header */}
+      <div className="flex items-center gap-3 pb-4 border-b border-neutral-200 dark:border-neutral-700 flex-shrink-0">
+        <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-2xl flex-shrink-0">
+          {persona.icon}
+        </div>
+        <div className="min-w-0 flex-1">
+          <h3 
+            id="chat-title"
+            className="text-base font-semibold text-neutral-900 dark:text-neutral-100 tracking-tight leading-tight truncate"
           >
-            <X className="w-5 h-5 text-gray-500" />
-          </button>
+            {persona.name}
+          </h3>
+          <p className="text-sm text-neutral-600 dark:text-neutral-400 truncate">{persona.title}</p>
         </div>
+      </div>
 
-        {/* Messages Area */}
-        <div 
-          className="flex-1 overflow-y-auto px-4 sm:px-6 py-3 sm:py-4 space-y-2 sm:space-y-3 overscroll-contain"
-          style={{ 
-            WebkitOverflowScrolling: 'touch',
-            scrollbarWidth: 'thin'
-          }}
-        >
-          {messages.map((message) => (
+      {/* Messages Area */}
+      <div 
+        className="flex-1 overflow-y-auto py-4 space-y-3 overscroll-contain"
+        style={{ 
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'thin'
+        }}
+      >
+        {messages.map((message) => (
+          <div
+            key={message.id}
+            className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} transition-opacity duration-200 ease-out`}
+          >
             <div
-              key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} transition-opacity duration-200 ease-out`}
+              className={`max-w-[85%] px-4 py-2.5 rounded-2xl transition-all duration-200 ease-out ${
+                message.role === 'user'
+                  ? 'bg-primary-500 text-white shadow-sm'
+                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
+              }`}
             >
-              <div
-                className={`max-w-[85%] sm:max-w-[75%] px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl transition-all duration-200 ease-out ${
-                  message.role === 'user'
-                    ? 'bg-blue-500 text-white shadow-sm'
-                    : 'bg-gray-100 text-gray-900'
-                }`}
-              >
-                {message.role === 'assistant' ? (
-                  <div className="markdown-body text-sm leading-[1.6] break-words">
-                    <ReactMarkdown>
-                      {message.content}
-                    </ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-sm leading-[1.6] break-words">{message.content}</p>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Typing Indicator */}
-          {loading && (
-            <div className="flex justify-start transition-opacity duration-200 ease-out">
-              <div className="max-w-[85%] sm:max-w-[75%] px-3 sm:px-4 py-2 sm:py-2.5 rounded-2xl bg-gray-100">
-                <div className="flex gap-1">
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
-                  <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              {message.role === 'assistant' ? (
+                <div className="markdown-body text-sm leading-relaxed break-words">
+                  <ReactMarkdown>
+                    {message.content}
+                  </ReactMarkdown>
                 </div>
-              </div>
-            </div>
-          )}
-
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Input Area - Fixed at bottom with safe area padding */}
-        <div 
-          className="px-4 sm:px-6 py-3 sm:py-4 border-t border-gray-100 bg-white flex-shrink-0"
-          style={{ paddingBottom: 'max(1rem, env(safe-area-inset-bottom))' }}
-        >
-          {/* Error Message with Retry */}
-          {error && (
-            <div className="mb-2 sm:mb-3 p-2.5 sm:p-3 bg-red-50 border border-red-100 rounded-2xl flex items-center justify-between gap-2 transition-all duration-200 ease-out">
-              <p className="text-xs text-red-600 leading-[1.6] flex-1">{error}</p>
-              {lastFailedMessage && (
-                <button
-                  onClick={handleRetry}
-                  disabled={loading}
-                  className="text-xs font-medium text-red-600 hover:text-red-700 underline disabled:opacity-50 transition-colors duration-200 ease-out whitespace-nowrap touch-manipulation"
-                >
-                  Retry
-                </button>
+              ) : (
+                <p className="text-sm leading-relaxed break-words">{message.content}</p>
               )}
             </div>
-          )}
-          
-          <div className="flex items-center gap-2">
-            <input
-              type="text"
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Type a message..."
-              disabled={loading}
-              className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-sm disabled:bg-gray-50 disabled:text-gray-400 transition-all duration-200 ease-out touch-manipulation"
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="sentences"
-            />
-            {input.trim() && (
+          </div>
+        ))}
+
+        {/* Typing Indicator */}
+        {loading && (
+          <div className="flex justify-start transition-opacity duration-200 ease-out">
+            <div className="max-w-[85%] px-4 py-2.5 rounded-2xl bg-neutral-100 dark:bg-neutral-800">
+              <div className="flex gap-1">
+                <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }}></div>
+                <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }}></div>
+                <div className="w-2 h-2 bg-neutral-400 dark:bg-neutral-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }}></div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input Area - Fixed at bottom */}
+      <div 
+        className="pt-4 border-t border-neutral-200 dark:border-neutral-700 flex-shrink-0"
+      >
+        {/* Error Message with Retry */}
+        {error && (
+          <div className="mb-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center justify-between gap-2 transition-all duration-200 ease-out">
+            <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed flex-1">{error}</p>
+            {lastFailedMessage && (
               <button
-                onClick={handleSendMessage}
-                disabled={loading || !input.trim()}
-                className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-blue-500 hover:bg-blue-600 flex items-center justify-center transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-sm hover:shadow-md flex-shrink-0 touch-manipulation"
-                aria-label="Send message"
+                onClick={handleRetry}
+                disabled={loading}
+                className="text-xs font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline disabled:opacity-50 transition-colors duration-200 ease-out whitespace-nowrap"
               >
-                <Send className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
+                Retry
               </button>
             )}
           </div>
+        )}
+        
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            disabled={loading}
+            className="flex-1 px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm disabled:bg-neutral-100 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 transition-all duration-200 ease-out"
+            autoComplete="off"
+            autoCorrect="off"
+            autoCapitalize="sentences"
+          />
+          {input.trim() && (
+            <button
+              onClick={handleSendMessage}
+              disabled={loading || !input.trim()}
+              className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 flex items-center justify-center transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-sm hover:shadow-md flex-shrink-0"
+              aria-label="Send message"
+            >
+              <Send className="w-5 h-5 text-white" />
+            </button>
+          )}
         </div>
       </div>
     </div>

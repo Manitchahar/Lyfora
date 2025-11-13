@@ -1,7 +1,17 @@
-import { useState, useEffect } from 'react';
+/**
+ * ProgressTracking Component
+ * 
+ * Displays user progress statistics and activity completion charts with design system components.
+ * Requirements: 2.3, 8.5, 17.3
+ */
+
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { TrendingUp, Calendar, Flame, Target } from 'lucide-react';
+import { Card } from '../../design-system/components/Card/Card';
+import { Button } from '../../design-system/components/Button/Button';
+import { Skeleton } from '../../design-system/components/Skeleton/Skeleton';
 
 interface Stats {
   currentStreak: number;
@@ -23,11 +33,8 @@ export function ProgressTracking() {
   const [loading, setLoading] = useState(true);
   const [timeRange, setTimeRange] = useState<'7' | '30'>('7');
 
-  useEffect(() => {
-    loadStats();
-  }, [user, timeRange]);
-
-  const loadStats = async () => {
+  // Memoize loadStats to prevent unnecessary recreations (Requirement 17.3)
+  const loadStats = useCallback(async () => {
     if (!user) return;
 
     const days = parseInt(timeRange);
@@ -47,9 +54,13 @@ export function ProgressTracking() {
       .select('completed_at')
       .eq('user_id', user.id);
 
+    // Type assertion for Supabase data
+    type RoutineData = { date: string; completion_rate: number };
+    const typedRoutines = (routines || []) as RoutineData[];
+
     let streak = 0;
     const checkDate = new Date();
-    const dateMap = new Map(routines?.map(r => [r.date, r.completion_rate]) || []);
+    const dateMap = new Map(typedRoutines.map(r => [r.date, r.completion_rate]));
 
     while (true) {
       const dateStr = checkDate.toISOString().split('T')[0];
@@ -74,8 +85,8 @@ export function ProgressTracking() {
       weeklyData.push({ date: dateStr, completion });
     }
 
-    const avgCompletion = routines && routines.length > 0
-      ? routines.reduce((sum, r) => sum + r.completion_rate, 0) / routines.length
+    const avgCompletion = typedRoutines.length > 0
+      ? typedRoutines.reduce((sum, r) => sum + r.completion_rate, 0) / typedRoutines.length
       : 0;
 
     setStats({
@@ -87,65 +98,74 @@ export function ProgressTracking() {
     });
 
     setLoading(false);
-  };
+  }, [user, timeRange]);
 
-  const StatCard = ({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string | number; color: string }) => (
-    <div className="bg-white rounded-xl shadow-sm p-6 flex items-center gap-4">
-      <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center`}>
-        <Icon className="w-6 h-6 text-white" />
+  useEffect(() => {
+    loadStats();
+  }, [loadStats]);
+
+  // Memoize StatCard component to prevent unnecessary re-renders (Requirement 17.3)
+  const StatCard = useCallback(({ icon: Icon, label, value, color }: { icon: React.ElementType; label: string; value: string | number; color: string }) => (
+    <Card variant="elevated" padding="md" className="flex items-center gap-4">
+      <div className={`w-12 h-12 ${color} rounded-lg flex items-center justify-center flex-shrink-0`}>
+        <Icon className="w-6 h-6 text-white" aria-hidden="true" />
       </div>
       <div>
-        <p className="text-sm text-gray-600">{label}</p>
-        <p className="text-2xl font-bold text-gray-800">{value}</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400">{label}</p>
+        <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">{value}</p>
       </div>
-    </div>
-  );
+    </Card>
+  ), []);
 
-  const maxCompletion = Math.max(...stats.weeklyData.map(d => d.completion), 1);
+  // Memoize expensive computation of max completion (Requirement 17.3)
+  const maxCompletion = useMemo(
+    () => Math.max(...stats.weeklyData.map(d => d.completion), 1),
+    [stats.weeklyData]
+  );
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="h-24 bg-gray-200 rounded"></div>
-            <div className="h-24 bg-gray-200 rounded"></div>
+      <Card variant="elevated" padding="md">
+        <div className="space-y-6">
+          <Skeleton width="33%" height="24px" />
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Skeleton height="96px" />
+            <Skeleton height="96px" />
+            <Skeleton height="96px" />
+            <Skeleton height="96px" />
+          </div>
+          <div className="space-y-4">
+            <Skeleton width="40%" height="20px" />
+            <Skeleton height="160px" />
           </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl shadow-sm p-6">
+      <Card variant="elevated" padding="md">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-2xl font-bold text-gray-800 flex items-center">
-            <TrendingUp className="w-6 h-6 text-teal-500 mr-2" />
+          <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50 flex items-center">
+            <TrendingUp className="w-6 h-6 text-primary-500 mr-2" aria-hidden="true" />
             Your Progress
           </h2>
           <div className="flex gap-2">
-            <button
+            <Button
+              variant={timeRange === '7' ? 'primary' : 'ghost'}
+              size="sm"
               onClick={() => setTimeRange('7')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                timeRange === '7'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
             >
               7 Days
-            </button>
-            <button
+            </Button>
+            <Button
+              variant={timeRange === '30' ? 'primary' : 'ghost'}
+              size="sm"
               onClick={() => setTimeRange('30')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                timeRange === '30'
-                  ? 'bg-teal-500 text-white'
-                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-              }`}
             >
               30 Days
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -160,7 +180,7 @@ export function ProgressTracking() {
             icon={Target}
             label="Completed Activities"
             value={stats.totalActivities}
-            color="bg-teal-500"
+            color="bg-primary-500"
           />
           <StatCard
             icon={Calendar}
@@ -177,7 +197,7 @@ export function ProgressTracking() {
         </div>
 
         <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">Activity Completion</h3>
+          <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-50 mb-4">Activity Completion</h3>
           <div className="flex items-end gap-2 h-40">
             {stats.weeklyData.map((day, index) => {
               const height = (day.completion / maxCompletion) * 100;
@@ -186,34 +206,39 @@ export function ProgressTracking() {
 
               return (
                 <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                  <div className="w-full bg-gray-100 rounded-t relative" style={{ height: '100%' }}>
+                  <div className="w-full bg-neutral-100 dark:bg-neutral-800 rounded-t relative" style={{ height: '100%' }}>
                     <div
-                      className="absolute bottom-0 w-full bg-teal-500 rounded-t transition-all"
+                      className="absolute bottom-0 w-full bg-primary-500 rounded-t transition-all"
                       style={{ height: `${height}%` }}
+                      role="progressbar"
+                      aria-valuenow={day.completion}
+                      aria-valuemin={0}
+                      aria-valuemax={100}
+                      aria-label={`${dayLabel}: ${Math.round(day.completion)}% completion`}
                     />
                   </div>
-                  <span className="text-xs text-gray-500">{dayLabel}</span>
+                  <span className="text-xs text-neutral-500 dark:text-neutral-400">{dayLabel}</span>
                 </div>
               );
             })}
           </div>
         </div>
-      </div>
+      </Card>
 
       {stats.currentStreak >= 3 && (
-        <div className="bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200 rounded-xl p-6">
+        <Card variant="filled" padding="md" className="bg-gradient-to-r from-orange-50 to-yellow-50 dark:from-orange-950/30 dark:to-yellow-950/30 border-2 border-orange-200 dark:border-orange-800">
           <div className="flex items-center gap-3">
-            <div className="text-4xl">🔥</div>
+            <div className="text-4xl" role="img" aria-label="Fire emoji">🔥</div>
             <div>
-              <h3 className="text-lg font-bold text-gray-800">
+              <h3 className="text-lg font-bold text-neutral-900 dark:text-neutral-50">
                 Amazing {stats.currentStreak}-Day Streak!
               </h3>
-              <p className="text-gray-600">
+              <p className="text-neutral-600 dark:text-neutral-400">
                 You're building great wellness habits. Keep it up!
               </p>
             </div>
           </div>
-        </div>
+        </Card>
       )}
     </div>
   );

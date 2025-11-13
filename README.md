@@ -1,163 +1,157 @@
-# Lyfora - Your Personal Wellness Companion
+# Lyfora - AI Wellness Companion
 
-A modern, AI-powered wellness application designed to help users achieve their health and wellness goals through personalized daily routines, activity tracking, and intelligent wellness recommendations.
+A modern wellness application with AI-powered expert coaches to help you achieve your health and fitness goals.
 
-## 🌟 Features
+## Features
 
-### Core Features
+- 🏥 **Expert AI Coaches** - Chat with specialized coaches for health, fitness, nutrition, and more
+- 🎨 **Modern Design** - Apple-inspired UI with smooth animations and transitions
+- 🌓 **Dark Mode** - Beautiful light and dark themes
+- 📱 **Responsive** - Works seamlessly on desktop, tablet, and mobile
+- ♿ **Accessible** - WCAG 2.1 AA compliant
+- ⚡ **Fast** - Optimized performance with lazy loading and code splitting
 
-- **User Authentication**: Secure sign-up and login system powered by Supabase
-- **Personalized Onboarding**: Multi-step onboarding flow to understand user goals and preferences
-- **Daily Routines**: AI-generated daily activity routines based on user goals and preferences
-- **Activity Tracking**: Log and track completion of wellness activities
-- **Daily Check-ins**: Monitor daily wellness metrics (mood, energy, sleep quality)
-- **Manual Activity Logging**: Record custom wellness activities
-- **Progress Tracking**: Visual progress reports and analytics
-- **Wellness Assistant**: AI-powered wellness recommendations and tips
-- **Activity Reminders**: Smart reminders for scheduled activities
+## Tech Stack
 
-### Wellness Categories
+- **Frontend**: React 18, TypeScript, Vite
+- **Styling**: Tailwind CSS, Framer Motion
+- **Backend**: Supabase (Auth, Database, Edge Functions)
+- **AI**: Google Gemini 1.5 Flash
+- **Deployment**: Vercel
+- **Testing**: Vitest, Playwright
 
-- 💪 Physical Fitness
-- 🧘 Mental Health
-- 🥗 Nutrition
-- 😴 Sleep Quality
-- 🌿 Stress Management
-
-## 🚀 Tech Stack
-
-### Frontend
-- **React 18** - UI library
-- **TypeScript** - Type-safe JavaScript
-- **Vite** - Fast build tool and dev server
-- **Tailwind CSS** - Utility-first CSS framework
-- **Lucide React** - Modern icon library
-
-### Backend & Database
-- **Supabase** - PostgreSQL database, authentication, and real-time APIs
-- **PostgreSQL** - Relational database with RLS (Row-Level Security)
-
-### Development Tools
-- **ESLint** - Code linting
-- **PostCSS** - CSS processing
-- **TypeScript** - Static type checking
-
-## 📋 Project Structure
-
-```
-Lyfora/
-├── src/
-│   ├── components/
-│   │   ├── Auth/           # Login and signup forms
-│   │   ├── Dashboard/      # Main dashboard components
-│   │   │   ├── DailyRoutine.tsx
-│   │   │   ├── DailyCheckIn.tsx
-│   │   │   ├── ProgressTracking.tsx
-│   │   │   ├── ManualActivityLog.tsx
-│   │   │   └── WellnessAssistant.tsx
-│   │   └── Onboarding/     # Onboarding flow
-│   ├── contexts/           # React contexts (Authentication)
-│   ├── lib/                # Utilities and Supabase config
-│   ├── App.tsx             # Main app component
-│   ├── main.tsx            # Application entry point
-│   └── index.css           # Global styles
-├── supabase/
-│   ├── functions/          # Edge functions
-│   └── migrations/         # Database migrations
-├── vite.config.ts          # Vite configuration
-├── tailwind.config.js      # Tailwind CSS configuration
-└── package.json            # Dependencies and scripts
-```
-
-## 🗄️ Database Schema
-
-### Key Tables
-
-- **wellness_profiles**: User profile information and wellness goals
-- **daily_routines**: Daily activity plans for users
-- **activity_completions**: Tracks completion of individual activities
-- **daily_checkins**: Daily wellness metrics (mood, energy, sleep)
-- **manual_activities**: User-logged custom activities
-- **wellness_tips**: Wellness tips and recommendations
-
-All tables have Row-Level Security (RLS) enabled to ensure users can only access their own data.
-
-## 🛠️ Getting Started
+## Getting Started
 
 ### Prerequisites
 
-- Node.js 16+ 
-- npm or yarn
+- Node.js 18+ and npm
 - Supabase account
+- Google Gemini API key
 
 ### Installation
 
-1. Clone the repository:
+1. Clone the repository
 ```bash
-git clone https://github.com/Manitchahar/Lyfora.git
+git clone <your-repo-url>
 cd Lyfora
 ```
 
-2. Install dependencies:
+2. Install dependencies
 ```bash
 npm install
 ```
 
-3. Set up environment variables:
-Create a `.env.local` file in the root directory:
-```
+3. Set up environment variables
+
+Create a `.env` file in the root directory:
+```env
 VITE_SUPABASE_URL=your_supabase_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-4. Start the development server:
+4. Run the development server
 ```bash
 npm run dev
 ```
 
-The app will be available at `http://localhost:5173`
+Visit `http://localhost:5173` to see the app.
 
-## 📝 Available Scripts
+## Project Structure
 
-- `npm run dev` - Start development server with hot reload
+```
+Lyfora/
+├── src/
+│   ├── components/        # React components
+│   ├── design-system/     # Design system components
+│   ├── routes/            # Route components
+│   ├── contexts/          # React contexts
+│   ├── hooks/             # Custom hooks
+│   ├── lib/               # Utilities and configs
+│   └── utils/             # Helper functions
+├── supabase/
+│   └── functions/         # Edge functions
+├── tests/                 # E2E tests
+└── public/                # Static assets
+```
+
+## Available Scripts
+
+- `npm run dev` - Start development server
 - `npm run build` - Build for production
 - `npm run preview` - Preview production build
-- `npm run lint` - Run ESLint to check code quality
-- `npm run typecheck` - Run TypeScript type checking
+- `npm run test` - Run unit tests
+- `npm run test:e2e` - Run E2E tests
+- `npm run lint` - Lint code
 
-## 🔐 Security Features
+## Deployment
 
-- **Row-Level Security (RLS)**: PostgreSQL RLS policies ensure users can only access their own data
-- **Supabase Authentication**: Secure user authentication with email/password
-- **Protected Routes**: Dashboard and features are only accessible to authenticated users
+### Vercel
 
-## 🎯 User Flow
+1. Install Vercel CLI
+```bash
+npm i -g vercel
+```
 
-1. **Sign Up/Login**: User creates account or logs in
-2. **Onboarding**: 5-step onboarding to set wellness goals and preferences
-3. **Dashboard**: Access personalized wellness features
-4. **Daily Routine**: View and complete AI-generated daily activities
-5. **Daily Check-in**: Log daily wellness metrics
-6. **Track Progress**: Monitor wellness achievements over time
-7. **Manual Logging**: Log custom wellness activities
-8. **Get Recommendations**: Receive AI-powered wellness tips
+2. Deploy
+```bash
+vercel --prod
+```
 
-## 🤝 Contributing
+3. Set environment variables in Vercel dashboard:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+
+### Supabase Edge Functions
+
+1. Deploy the persona-chat function
+```bash
+npx supabase functions deploy persona-chat
+```
+
+2. Set the Gemini API key secret in Supabase dashboard:
+   - Name: `GEMINI_API_KEY`
+   - Value: Your Gemini API key
+
+## Features in Detail
+
+### AI Expert Coaches
+
+Chat with specialized AI coaches:
+- 🏥 Health Coach - Holistic wellness guidance
+- 💪 Gym Coach - Strength training expertise
+- 🏊 Swimming Coach - Aquatic fitness
+- 🏋️ Weightlifting Coach - Powerlifting specialist
+- 🥗 Nutrition Coach - Dietary guidance
+- 🧘 Yoga Coach - Mindfulness and flexibility
+
+### Design System
+
+Built with a comprehensive design system including:
+- Reusable components (Button, Input, Card, Modal)
+- Consistent design tokens (colors, spacing, typography)
+- Smooth animations and transitions
+- Accessible by default
+
+### Performance
+
+- Code splitting and lazy loading
+- Image optimization
+- Debounced search
+- Skeleton loading states
+- Optimized bundle size
+
+## Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
 
-## 📄 License
+## License
 
-This project is licensed under the MIT License.
+This project is private and proprietary.
 
-## 👨‍💻 Author
+## Support
 
-**Manit Chahar** - [GitHub](https://github.com/Manitchahar)
-
-## 📧 Support
-
-For support, please open an issue on the GitHub repository.
+For issues and questions, please open an issue in the repository.
 
 ---
 
-**Made with ❤️ for better wellness**
+Built with ❤️ using React, TypeScript, and Supabase

@@ -2,6 +2,188 @@
 @tailwind components;
 @tailwind utilities;
 
+/**
+ * Global CSS with Custom Properties and Theme Transitions
+ * 
+ * Defines CSS custom properties for theme colors and implements
+ * smooth transitions for theme changes.
+ * 
+ * Requirements: 1.3, 4.1, 4.5, 9.4
+ */
+
+@layer base {
+  /* SF Pro Display font-face declarations */
+  /* Requirement 9.4: Font-face declarations for SF Pro Display */
+  @font-face {
+    font-family: 'SF Pro Display';
+    src: local('SF Pro Display'), local('SFProDisplay-Regular');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'SF Pro Display';
+    src: local('SF Pro Display Medium'), local('SFProDisplay-Medium');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'SF Pro Display';
+    src: local('SF Pro Display Semibold'), local('SFProDisplay-Semibold');
+    font-weight: 600;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  @font-face {
+    font-family: 'SF Pro Display';
+    src: local('SF Pro Display Bold'), local('SFProDisplay-Bold');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+
+  /* Root CSS Custom Properties - Light Mode */
+  /* Requirement 4.1: CSS custom properties for all color values */
+  :root {
+    /* Primary colors */
+    --color-primary-50: 240 253 250;
+    --color-primary-100: 204 251 241;
+    --color-primary-200: 153 246 228;
+    --color-primary-300: 94 234 212;
+    --color-primary-400: 45 212 191;
+    --color-primary-500: 20 184 166;
+    --color-primary-600: 13 148 136;
+    --color-primary-700: 15 118 110;
+    --color-primary-800: 17 94 89;
+    --color-primary-900: 19 78 74;
+
+    /* Neutral colors */
+    --color-neutral-50: 249 250 251;
+    --color-neutral-100: 243 244 246;
+    --color-neutral-200: 229 231 235;
+    --color-neutral-300: 209 213 219;
+    --color-neutral-400: 156 163 175;
+    --color-neutral-500: 107 114 128;
+    --color-neutral-600: 75 85 99;
+    --color-neutral-700: 55 65 81;
+    --color-neutral-800: 31 41 55;
+    --color-neutral-900: 17 24 39;
+
+    /* Success colors */
+    --color-success-50: 240 253 244;
+    --color-success-100: 220 252 231;
+    --color-success-200: 187 247 208;
+    --color-success-300: 134 239 172;
+    --color-success-400: 74 222 128;
+    --color-success-500: 34 197 94;
+    --color-success-600: 22 163 74;
+    --color-success-700: 21 128 61;
+    --color-success-800: 22 101 52;
+    --color-success-900: 20 83 45;
+
+    /* Warning colors */
+    --color-warning-50: 255 251 235;
+    --color-warning-100: 254 243 199;
+    --color-warning-200: 253 230 138;
+    --color-warning-300: 252 211 77;
+    --color-warning-400: 251 191 36;
+    --color-warning-500: 245 158 11;
+    --color-warning-600: 217 119 6;
+    --color-warning-700: 180 83 9;
+    --color-warning-800: 146 64 14;
+    --color-warning-900: 120 53 15;
+
+    /* Error colors */
+    --color-error-50: 254 242 242;
+    --color-error-100: 254 226 226;
+    --color-error-200: 254 202 202;
+    --color-error-300: 252 165 165;
+    --color-error-400: 248 113 113;
+    --color-error-500: 239 68 68;
+    --color-error-600: 220 38 38;
+    --color-error-700: 185 28 28;
+    --color-error-800: 153 27 27;
+    --color-error-900: 127 29 29;
+
+    /* Semantic colors - Light Mode */
+    --color-background: 249 250 251;
+    --color-foreground: 17 24 39;
+    --color-surface: 255 255 255;
+    --color-border: 229 231 235;
+    --color-muted: 243 244 246;
+    --color-muted-foreground: 107 114 128;
+    --color-accent: 20 184 166;
+    --color-accent-foreground: 255 255 255;
+  }
+
+  /* Dark Mode CSS Custom Properties */
+  /* Requirement 4.1: Dark mode overrides for CSS variables */
+  .dark {
+    /* Semantic colors - Dark Mode */
+    --color-background: 17 24 39;
+    --color-foreground: 243 244 246;
+    --color-surface: 31 41 55;
+    --color-border: 55 65 81;
+    --color-muted: 31 41 55;
+    --color-muted-foreground: 156 163 175;
+    --color-accent: 45 212 191;
+    --color-accent-foreground: 17 24 39;
+  }
+
+  /* Base styles with theme transitions */
+  /* Requirements: 1.3, 4.5 - Smooth transitions for theme changes (200ms) */
+  * {
+    @apply border-neutral-200 dark:border-neutral-700;
+  }
+
+  html {
+    @apply antialiased;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-neutral-50 dark:bg-neutral-900;
+    @apply text-neutral-900 dark:text-neutral-100;
+    @apply font-sans;
+    transition: background-color 200ms ease-in-out, color 200ms ease-in-out;
+  }
+
+  /* Smooth transitions for theme-aware elements */
+  /* Requirement 4.5: Theme transitions with 200ms duration */
+  button,
+  input,
+  textarea,
+  select {
+    transition: background-color 200ms ease-in-out, 
+                border-color 200ms ease-in-out, 
+                color 200ms ease-in-out;
+  }
+
+  /* Respect prefers-reduced-motion setting */
+  /* Requirement 12.4: Disable animations when user prefers reduced motion */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  /* Focus visible styles for accessibility */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary-500 ring-offset-2;
+    @apply dark:ring-primary-400 dark:ring-offset-neutral-900;
+  }
+}
+
 @layer utilities {
   /* Hide scrollbar for Chrome, Safari and Opera */
   .scrollbar-hide::-webkit-scrollbar {

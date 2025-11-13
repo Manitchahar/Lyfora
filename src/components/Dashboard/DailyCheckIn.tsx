@@ -1,7 +1,18 @@
+/**
+ * DailyCheckIn Component
+ * 
+ * Daily wellness check-in form with design system components.
+ * Requirements: 2.1, 2.2, 8.5
+ */
+
 import { useState, useEffect } from 'react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../contexts/AuthContext';
 import { Heart, Zap, Moon, MessageSquare } from 'lucide-react';
+import { Card } from '../../design-system/components/Card/Card';
+import { Button } from '../../design-system/components/Button/Button';
+import { Input } from '../../design-system/components/Input/Input';
+import { Skeleton } from '../../design-system/components/Skeleton/Skeleton';
 
 interface CheckInData {
   mood: number;
@@ -76,8 +87,8 @@ export function DailyCheckIn() {
   const RatingScale = ({ label, value, onChange, icon: Icon }: { label: string; value: number; onChange: (value: number) => void; icon: React.ElementType }) => (
     <div className="space-y-3">
       <div className="flex items-center gap-2">
-        <Icon className="w-5 h-5 text-gray-600" />
-        <label className="text-sm font-medium text-gray-700">{label}</label>
+        <Icon className="w-5 h-5 text-neutral-600 dark:text-neutral-400" aria-hidden="true" />
+        <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">{label}</label>
       </div>
       <div className="flex gap-2">
         {[1, 2, 3, 4, 5].map((rating) => (
@@ -88,15 +99,16 @@ export function DailyCheckIn() {
             disabled={hasCheckedIn}
             className={`flex-1 py-3 rounded-lg border-2 transition font-medium ${
               value === rating
-                ? 'border-teal-500 bg-teal-50 text-teal-700'
-                : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                ? 'border-primary-500 bg-primary-50 dark:bg-primary-950/30 text-primary-700 dark:text-primary-300'
+                : 'border-neutral-200 dark:border-neutral-700 hover:border-neutral-300 dark:hover:border-neutral-600 text-neutral-600 dark:text-neutral-400'
             } ${hasCheckedIn ? 'opacity-60 cursor-not-allowed' : 'cursor-pointer'}`}
+            aria-label={`Rating ${rating}`}
           >
             {rating}
           </button>
         ))}
       </div>
-      <div className="flex justify-between text-xs text-gray-500">
+      <div className="flex justify-between text-xs text-neutral-500 dark:text-neutral-400">
         <span>Poor</span>
         <span>Excellent</span>
       </div>
@@ -105,21 +117,26 @@ export function DailyCheckIn() {
 
   if (loading) {
     return (
-      <div className="bg-white rounded-xl shadow-sm p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-          <div className="h-20 bg-gray-200 rounded"></div>
+      <Card variant="elevated" padding="md">
+        <div className="space-y-6">
+          <Skeleton width="40%" height="24px" />
+          <div className="space-y-4">
+            <Skeleton height="80px" />
+            <Skeleton height="80px" />
+            <Skeleton height="80px" />
+            <Skeleton height="48px" />
+          </div>
         </div>
-      </div>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm p-6">
+    <Card variant="elevated" padding="md">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-800">Daily Check-In</h2>
+        <h2 className="text-2xl font-bold text-neutral-900 dark:text-neutral-50">Daily Check-In</h2>
         {hasCheckedIn && (
-          <span className="text-sm text-teal-600 font-medium">✓ Completed Today</span>
+          <span className="text-sm text-primary-600 dark:text-primary-400 font-medium">✓ Completed Today</span>
         )}
       </div>
 
@@ -145,44 +162,45 @@ export function DailyCheckIn() {
           icon={Moon}
         />
 
-        <div className="space-y-3">
-          <label className="block text-sm font-medium text-gray-700">Hours of sleep</label>
-          <input
-            type="number"
-            value={data.sleepHours}
-            onChange={(e) => setData({ ...data, sleepHours: parseFloat(e.target.value) || 0 })}
-            disabled={hasCheckedIn}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition disabled:opacity-60"
-            min="0"
-            max="24"
-            step="0.5"
-          />
-        </div>
+        <Input
+          label="Hours of sleep"
+          type="number"
+          value={data.sleepHours}
+          onChange={(e) => setData({ ...data, sleepHours: parseFloat(e.target.value) || 0 })}
+          disabled={hasCheckedIn}
+          min="0"
+          max="24"
+          step="0.5"
+        />
 
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <MessageSquare className="w-5 h-5 text-gray-600" />
-            <label className="text-sm font-medium text-gray-700">Notes (Optional)</label>
+            <MessageSquare className="w-5 h-5 text-neutral-600 dark:text-neutral-400" aria-hidden="true" />
+            <label htmlFor="checkin-notes" className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Notes (Optional)</label>
           </div>
           <textarea
+            id="checkin-notes"
             value={data.notes}
             onChange={(e) => setData({ ...data, notes: e.target.value })}
             disabled={hasCheckedIn}
-            className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent outline-none transition disabled:opacity-60"
+            className="w-full px-4 py-3 border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 focus:ring-opacity-20 outline-none transition-all duration-150 ease-out placeholder:text-neutral-400 dark:placeholder:text-neutral-500 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-neutral-50 dark:disabled:bg-neutral-900"
             rows={3}
             placeholder="How are you feeling today?"
+            aria-label="Check-in notes"
           />
         </div>
 
         {!hasCheckedIn && (
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={handleSubmit}
-            className="w-full bg-teal-500 hover:bg-teal-600 text-white font-medium py-3 px-4 rounded-lg transition"
+            className="w-full"
           >
             Complete Check-In
-          </button>
+          </Button>
         )}
       </div>
-    </div>
+    </Card>
   );
 }
