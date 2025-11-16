@@ -6,17 +6,14 @@
  */
 
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { LogIn, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Button } from '../../design-system/components/Button/Button';
 import { Input } from '../../design-system/components/Input/Input';
 import { Card } from '../../design-system/components/Card/Card';
 
-interface LoginFormProps {
-  onToggleMode: () => void;
-}
-
-export function LoginForm({ onToggleMode }: LoginFormProps) {
+export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -106,12 +103,12 @@ export function LoginForm({ onToggleMode }: LoginFormProps) {
       {/* Toggle to signup */}
       <p className="mt-6 text-center text-neutral-600 dark:text-neutral-400">
         Don't have an account?{' '}
-        <button
-          onClick={onToggleMode}
+        <Link
+          to="/signup"
           className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors"
         >
           Sign up
-        </button>
+        </Link>
       </p>
     </Card>
   );

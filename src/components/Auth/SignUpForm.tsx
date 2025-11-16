@@ -6,15 +6,12 @@
  */
 
 import { useState, useMemo } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { UserPlus, Mail, Lock, AlertCircle } from 'lucide-react';
 import { Button } from '../../design-system/components/Button/Button';
 import { Input } from '../../design-system/components/Input/Input';
 import { Card } from '../../design-system/components/Card/Card';
-
-interface SignUpFormProps {
-  onToggleMode: () => void;
-}
 
 /**
  * Calculate password strength
@@ -40,7 +37,7 @@ function calculatePasswordStrength(password: string): 'weak' | 'medium' | 'stron
   return 'strong';
 }
 
-export function SignUpForm({ onToggleMode }: SignUpFormProps) {
+export function SignUpForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -200,12 +197,12 @@ export function SignUpForm({ onToggleMode }: SignUpFormProps) {
       {/* Toggle to login */}
       <p className="mt-6 text-center text-neutral-600 dark:text-neutral-400">
         Already have an account?{' '}
-        <button
-          onClick={onToggleMode}
+        <Link
+          to="/login"
           className="text-primary-600 dark:text-primary-400 hover:text-primary-700 dark:hover:text-primary-300 font-medium transition-colors"
         >
           Sign in
-        </button>
+        </Link>
       </p>
     </Card>
   );

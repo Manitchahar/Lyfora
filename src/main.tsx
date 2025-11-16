@@ -4,6 +4,8 @@ import { BrowserRouter, useRoutes, useLocation, Location } from 'react-router-do
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider } from './contexts/AuthContext';
 import { ThemeProvider } from './design-system/theme/ThemeProvider';
+import { RouteLoadingProvider } from './contexts/RouteLoadingContext';
+import { ErrorBoundary } from './design-system/components';
 import routes from './routes';
 import './index.css';
 
@@ -71,9 +73,13 @@ createRoot(document.getElementById('root')!).render(
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <App />
-          </Suspense>
+          <RouteLoadingProvider>
+            <ErrorBoundary>
+              <Suspense fallback={<LoadingFallback />}>
+                <App />
+              </Suspense>
+            </ErrorBoundary>
+          </RouteLoadingProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

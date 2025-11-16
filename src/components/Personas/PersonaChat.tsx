@@ -1,14 +1,9 @@
-import { useState, useEffect, useRef } from 'react';
-import ReactMarkdown from 'react-markdown';
-import { Send } from 'lucide-react';
+import { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { Persona } from '../../lib/personas';
-
-interface Message {
-  id: string;
-  role: 'user' | 'assistant';
-  content: string;
-  timestamp: Date;
-}
+import { groupMessages, Message } from './utils/messageGrouping';
+import MessageBubble from './MessageBubble';
+import { ErrorNotification } from './ErrorNotification';
+import ChatInput from './ChatInput';
 
 interface PersonaChatProps {
   persona: Persona;
@@ -20,7 +15,11 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [lastFailedMessage, setLastFailedMessage] = useState<string | null>(null);
+  const [shouldAutoScroll, setShouldAutoScroll] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const messageContainerRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
 
   // Add welcome message on mount
   useEffect(() => {
@@ -33,10 +32,49 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
     setMessages([welcomeMessage]);
   }, [persona]);
 
-  // Auto-scroll to latest message
+  // Handle scroll to detect if user is near bottom
+  const handleScroll = useCallback(() => {
+    if (!messageContainerRef.current) return;
+    
+    const { scrollTop, scrollHeight, clientHeight } = messageContainerRef.current;
+    const isNearBottom = scrollHeight - scrollTop - clientHeight < 100;
+    
+    setShouldAutoScroll(isNearBottom);
+  }, []);
+
+  // Debounced scroll handler with 100ms delay
+  const debouncedHandleScroll = useCallback(() => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      handleScroll();
+    }, 100);
+  }, [handleScroll]);
+
+  // Cleanup scroll timeout on unmount
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages, loading]);
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Auto-scroll to latest message only if shouldAutoScroll is true
+  useEffect(() => {
+    if (shouldAutoScroll && messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, loading, shouldAutoScroll]);
+
+  // Ensure focus returns to input after sending message
+  useEffect(() => {
+    if (!loading && inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, [loading]);
 
   const sendMessageToAPI = async (messageContent: string) => {
     setLoading(true);
@@ -130,15 +168,6 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
       }
       
       setError(errorMessage);
-
-      // Add fallback message
-      const fallbackMessage: Message = {
-        id: `assistant-${Date.now()}`,
-        role: 'assistant',
-        content: `I'm having trouble connecting right now, but I'm here to help with ${persona.title.toLowerCase()} guidance. Please try sending your message again.`,
-        timestamp: new Date()
-      };
-      setMessages(prev => [...prev, fallbackMessage]);
     } finally {
       setLoading(false);
     }
@@ -170,12 +199,8 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
     await sendMessageToAPI(lastFailedMessage);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      handleSendMessage();
-    }
-  };
+  // Group messages for rendering with grouping flags
+  const groupedMessages = useMemo(() => groupMessages(messages), [messages]);
 
   return (
     <div 
@@ -201,34 +226,29 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
 
       {/* Messages Area */}
       <div 
+        ref={messageContainerRef}
+        onScroll={debouncedHandleScroll}
         className="flex-1 overflow-y-auto py-4 space-y-3 overscroll-contain"
+        role="log"
+        aria-live="polite"
+        aria-atomic="false"
+        aria-relevant="additions"
         style={{ 
           WebkitOverflowScrolling: 'touch',
           scrollbarWidth: 'thin'
         }}
       >
-        {messages.map((message) => (
+        {groupedMessages.map((message) => (
           <div
             key={message.id}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} transition-opacity duration-200 ease-out`}
           >
-            <div
-              className={`max-w-[85%] px-4 py-2.5 rounded-2xl transition-all duration-200 ease-out ${
-                message.role === 'user'
-                  ? 'bg-primary-500 text-white shadow-sm'
-                  : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100'
-              }`}
-            >
-              {message.role === 'assistant' ? (
-                <div className="markdown-body text-sm leading-relaxed break-words">
-                  <ReactMarkdown>
-                    {message.content}
-                  </ReactMarkdown>
-                </div>
-              ) : (
-                <p className="text-sm leading-relaxed break-words">{message.content}</p>
-              )}
-            </div>
+            <MessageBubble
+              message={message}
+              isGroupStart={message.isGroupStart || false}
+              isGroupEnd={message.isGroupEnd || false}
+              isGroupMiddle={message.isGroupMiddle || false}
+            />
           </div>
         ))}
 
@@ -248,50 +268,37 @@ export default function PersonaChat({ persona }: PersonaChatProps) {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* Visually hidden status div for screen reader announcements */}
+      <div 
+        className="sr-only" 
+        role="status" 
+        aria-live="polite" 
+        aria-atomic="true"
+      >
+        {loading && "AI is typing..."}
+        {error && `Error: ${error}`}
+      </div>
+
       {/* Input Area - Fixed at bottom */}
       <div 
-        className="pt-4 border-t border-neutral-200 dark:border-neutral-700 flex-shrink-0"
+        className="pt-4 border-t border-neutral-200 dark:border-neutral-700 flex-shrink-0 relative"
       >
-        {/* Error Message with Retry */}
-        {error && (
-          <div className="mb-3 p-3 bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-900/50 rounded-xl flex items-center justify-between gap-2 transition-all duration-200 ease-out">
-            <p className="text-xs text-red-700 dark:text-red-300 leading-relaxed flex-1">{error}</p>
-            {lastFailedMessage && (
-              <button
-                onClick={handleRetry}
-                disabled={loading}
-                className="text-xs font-medium text-red-700 dark:text-red-300 hover:text-red-800 dark:hover:text-red-200 underline disabled:opacity-50 transition-colors duration-200 ease-out whitespace-nowrap"
-              >
-                Retry
-              </button>
-            )}
-          </div>
-        )}
+        {/* Error Notification */}
+        <ErrorNotification
+          error={error}
+          onRetry={lastFailedMessage ? handleRetry : undefined}
+          onDismiss={() => setError(null)}
+        />
         
-        <div className="flex items-center gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder="Type a message..."
-            disabled={loading}
-            className="flex-1 px-4 py-2.5 rounded-full border border-neutral-300 dark:border-neutral-600 bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-500 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent text-sm disabled:bg-neutral-100 dark:disabled:bg-neutral-800 disabled:text-neutral-400 dark:disabled:text-neutral-500 transition-all duration-200 ease-out"
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="sentences"
-          />
-          {input.trim() && (
-            <button
-              onClick={handleSendMessage}
-              disabled={loading || !input.trim()}
-              className="w-10 h-10 rounded-full bg-primary-500 hover:bg-primary-600 flex items-center justify-center transition-all duration-200 ease-out disabled:opacity-50 disabled:cursor-not-allowed active:scale-95 shadow-sm hover:shadow-md flex-shrink-0"
-              aria-label="Send message"
-            >
-              <Send className="w-5 h-5 text-white" />
-            </button>
-          )}
-        </div>
+        {/* Chat Input */}
+        <ChatInput
+          ref={inputRef}
+          value={input}
+          onChange={setInput}
+          onSend={handleSendMessage}
+          disabled={loading}
+          placeholder="Type a message..."
+        />
       </div>
     </div>
   );

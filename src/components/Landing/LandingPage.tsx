@@ -7,15 +7,12 @@
  * Requirements: 1.1, 1.2, 1.3, 1.4, 9.3, 11.1, 11.4
  */
 
+import { Link } from 'react-router-dom';
 import { ArrowRight, Sparkles, Shield, Zap } from 'lucide-react';
 import { Button } from '../../design-system/components/Button/Button';
 import { Card } from '../../design-system/components/Card/Card';
 
-interface LandingPageProps {
-  onGetStarted: () => void;
-}
-
-export function LandingPage({ onGetStarted }: LandingPageProps) {
+export function LandingPage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 via-blue-50 to-green-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 overflow-hidden">
       {/* Ambient Background - Subtle gradient orbs */}
@@ -35,15 +32,24 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
               Lyfora
             </span>
           </div>
-          <Button
-            variant="secondary"
-            size="md"
-            onClick={onGetStarted}
-            icon={<ArrowRight size={18} />}
-            aria-label="Get started with Lyfora"
-          >
-            Get Started
-          </Button>
+          <div className="flex items-center gap-4">
+            <Link
+              to="/login"
+              className="text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white font-medium transition-colors"
+            >
+              Log In
+            </Link>
+            <Link to="/signup">
+              <Button
+                variant="secondary"
+                size="md"
+                icon={<ArrowRight size={18} />}
+                aria-label="Get started with Lyfora"
+              >
+                Get Started
+              </Button>
+            </Link>
+          </div>
         </div>
       </nav>
 
@@ -72,15 +78,16 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           </p>
           
           {/* CTA Button - Requirements: 2.1 (Button component), 1.5 (hover feedback within 100ms) */}
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={onGetStarted}
-            icon={<ArrowRight size={20} />}
-            className="shadow-lg hover:shadow-xl"
-          >
-            Start Your Journey
-          </Button>
+          <Link to="/signup">
+            <Button
+              variant="primary"
+              size="lg"
+              icon={<ArrowRight size={20} />}
+              className="shadow-lg hover:shadow-xl"
+            >
+              Start Your Journey
+            </Button>
+          </Link>
           
           {/* Stats - Requirements: 10.3 (16px spacing between related elements) */}
           <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-12 mt-20 text-gray-500 dark:text-gray-400">
@@ -171,15 +178,16 @@ export function LandingPage({ onGetStarted }: LandingPageProps) {
           <p className="text-lg sm:text-xl text-gray-600 dark:text-gray-400 mb-12 max-w-2xl mx-auto leading-relaxed">
             Join thousands who've discovered a smarter way to wellness.
           </p>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={onGetStarted}
-            icon={<ArrowRight size={20} />}
-            className="shadow-lg hover:shadow-xl"
-          >
-            Get Started Free
-          </Button>
+          <Link to="/signup">
+            <Button
+              variant="primary"
+              size="lg"
+              icon={<ArrowRight size={20} />}
+              className="shadow-lg hover:shadow-xl"
+            >
+              Get Started Free
+            </Button>
+          </Link>
           <p className="text-gray-500 dark:text-gray-400 text-sm mt-6">
             No credit card required
           </p>

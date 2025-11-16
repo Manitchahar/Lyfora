@@ -7,14 +7,52 @@ declare const Deno: {
   serve(handler: (req: Request) => Response | Promise<Response>): void;
 };
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
+const DEFAULT_ALLOWED_ORIGINS = [
+  "http://localhost:5173",
+  "http://127.0.0.1:5173",
+  "https://lyfora.vercel.app",
+];
+
+const envAllowedOrigins = Deno.env.get("ALLOWED_ORIGINS")
+  ?.split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const allowedOrigins = new Set(envAllowedOrigins?.length ? envAllowedOrigins : DEFAULT_ALLOWED_ORIGINS);
+
+const baseCorsHeaders = {
   "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
   "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Client-Info, Apikey",
+  "Access-Control-Allow-Credentials": "true",
 };
 
-// Use Gemini 1.5 Flash - fast and cost effective model
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent";
+const getCorsHeaders = (origin?: string) => {
+  const allowOrigin = origin && allowedOrigins.has(origin)
+    ? origin
+    : allowedOrigins.values().next()?.value ?? "http://localhost:5173";
+
+  return {
+    ...baseCorsHeaders,
+    "Access-Control-Allow-Origin": allowOrigin,
+  };
+};
+
+const jsonResponse = (body: Record<string, unknown>, status: number, origin?: string) =>
+  new Response(
+    JSON.stringify(body),
+    {
+      status,
+      headers: {
+        ...getCorsHeaders(origin),
+        "Content-Type": "application/json",
+      },
+    },
+  );
+
+// Use Gemini Flash Latest - fast, cost effective, and most up-to-date model (Gemini 2.5)
+// Note: gemini-flash-latest auto-resolves to the best available flash model
+const GEMINI_MODEL = "gemini-flash-latest";
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent`;
 
 interface GeminiContentPart {
   text: string;
@@ -75,23 +113,24 @@ const buildPrompt = (message: string, personaId: string): GeminiContent[] => {
 };
 
 Deno.serve(async (req: Request) => {
+  const originHeader = req.headers.get("Origin") || undefined;
+
+  if (originHeader && !allowedOrigins.has(originHeader)) {
+    console.warn("[PersonaChat] Blocked request from disallowed origin", originHeader);
+    return jsonResponse({ error: "Origin not allowed" }, 403, originHeader);
+  }
+
   // Handle CORS preflight
   if (req.method === "OPTIONS") {
     return new Response(null, {
-      status: 200,
-      headers: corsHeaders,
+      status: 204,
+      headers: getCorsHeaders(originHeader),
     });
   }
 
   // Only allow POST
   if (req.method !== "POST") {
-    return new Response(
-      JSON.stringify({ error: "Method not allowed" }),
-      {
-        status: 405,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse({ error: "Method not allowed" }, 405, originHeader);
   }
 
   try {
@@ -101,13 +140,7 @@ Deno.serve(async (req: Request) => {
     
     if (!apiKey) {
       console.error("[PersonaChat] GEMINI_API_KEY not configured");
-      return new Response(
-        JSON.stringify({ error: "API key not configured - service unavailable" }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonResponse({ error: "API key not configured - service unavailable" }, 500, originHeader);
     }
 
     // Parse request body with error handling
@@ -120,74 +153,38 @@ Deno.serve(async (req: Request) => {
       personaId = body.personaId;
     } catch (parseError) {
       console.error("[PersonaChat] Failed to parse request body:", parseError);
-      return new Response(
-        JSON.stringify({ error: "Invalid request format" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonResponse({ error: "Invalid request format" }, 400, originHeader);
     }
 
-    console.log("[PersonaChat] Received message:", message?.substring(0, 50));
+    console.log("[PersonaChat] Message length:", typeof message === "string" ? message.length : 0);
     console.log("[PersonaChat] Persona ID:", personaId);
 
     // Validate request
     if (!message || typeof message !== "string") {
-      console.error("[PersonaChat] Invalid message");
-      return new Response(
-        JSON.stringify({ error: "Message is required and must be a string" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      console.error("[PersonaChat] Invalid message type");
+      return jsonResponse({ error: "Message is required and must be a string" }, 400, originHeader);
     }
 
     // Validate message length
     if (message.trim().length === 0) {
       console.error("[PersonaChat] Empty message");
-      return new Response(
-        JSON.stringify({ error: "Message cannot be empty" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonResponse({ error: "Message cannot be empty" }, 400, originHeader);
     }
 
     if (message.length > 5000) {
       console.error("[PersonaChat] Message too long");
-      return new Response(
-        JSON.stringify({ error: "Message is too long (max 5000 characters)" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonResponse({ error: "Message is too long (max 5000 characters)" }, 400, originHeader);
     }
 
     if (!personaId || typeof personaId !== "string") {
       console.error("[PersonaChat] Invalid personaId");
-      return new Response(
-        JSON.stringify({ error: "PersonaId is required and must be a string" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonResponse({ error: "PersonaId is required and must be a string" }, 400, originHeader);
     }
 
     // Validate persona exists
     if (!PERSONA_CONTEXTS[personaId]) {
       console.error("[PersonaChat] Unknown persona:", personaId);
-      return new Response(
-        JSON.stringify({ error: "Invalid persona ID" }),
-        {
-          status: 400,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        },
-      );
+      return jsonResponse({ error: "Invalid persona ID" }, 400, originHeader);
     }
 
     console.log(`[PersonaChat] Calling Gemini API with persona: ${personaId}`);
@@ -210,6 +207,9 @@ Deno.serve(async (req: Request) => {
             temperature: 0.7,
             topP: 0.9,
             maxOutputTokens: 512,
+            thinkingConfig: {
+              thinkingBudget: 0  // Disable thinking mode for faster, conversational responses
+            }
           },
         }),
         signal: geminiController.signal,
@@ -232,14 +232,13 @@ Deno.serve(async (req: Request) => {
           'yoga-coach': "Let's take a breath and try again. What yoga guidance do you need?"
         };
         
-        return new Response(
-          JSON.stringify({ 
-            response: timeoutResponses[personaId] || timeoutResponses['health-coach']
-          }),
+        return jsonResponse(
           {
-            status: 200,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
+            error: "Upstream timeout",
+            response: timeoutResponses[personaId] || timeoutResponses['health-coach'],
           },
+          504,
+          originHeader,
         );
       }
       
@@ -254,24 +253,12 @@ Deno.serve(async (req: Request) => {
       
       // Handle specific Gemini API errors
       if (geminiResponse.status === 429) {
-        return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
-          {
-            status: 429,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        return jsonResponse({ error: "Rate limit exceeded. Please try again in a moment." }, 429, originHeader);
       }
       
       if (geminiResponse.status === 401 || geminiResponse.status === 403) {
         console.error("[PersonaChat] Gemini API authentication failed");
-        return new Response(
-          JSON.stringify({ error: "API authentication failed - service unavailable" }),
-          {
-            status: 500,
-            headers: { ...corsHeaders, "Content-Type": "application/json" },
-          },
-        );
+        return jsonResponse({ error: "API authentication failed - service unavailable" }, 502, originHeader);
       }
       
       // Return persona-specific fallback response for other errors
@@ -284,14 +271,13 @@ Deno.serve(async (req: Request) => {
         'yoga-coach': "Let's take a breath and try again. What yoga question do you have?"
       };
       
-      return new Response(
-        JSON.stringify({ 
-          response: fallbackResponses[personaId] || fallbackResponses['health-coach']
-        }),
+      return jsonResponse(
         {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          error: "Gemini request failed",
+          response: fallbackResponses[personaId] || fallbackResponses['health-coach'],
         },
+        502,
+        originHeader,
       );
     }
 
@@ -311,14 +297,13 @@ Deno.serve(async (req: Request) => {
         'yoga-coach': "Let's start fresh. What yoga guidance are you looking for?"
       };
       
-      return new Response(
-        JSON.stringify({
-          response: fallbackResponses[personaId] || fallbackResponses['health-coach']
-        }),
+      return jsonResponse(
         {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          error: "Gemini response parse failure",
+          response: fallbackResponses[personaId] || fallbackResponses['health-coach'],
         },
+        502,
+        originHeader,
       );
     }
     
@@ -345,14 +330,13 @@ Deno.serve(async (req: Request) => {
         'yoga-coach': "Let's maintain a positive space. Could you ask that in a different way?"
       };
       
-      return new Response(
-        JSON.stringify({
-          response: safetyResponses[personaId] || safetyResponses['health-coach']
-        }),
+      return jsonResponse(
         {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          error: "Content blocked by safety filters",
+          response: safetyResponses[personaId] || safetyResponses['health-coach'],
         },
+        400,
+        originHeader,
       );
     }
 
@@ -368,24 +352,17 @@ Deno.serve(async (req: Request) => {
         'yoga-coach': "I'm here to guide you. Could you share more about what you need?"
       };
       
-      return new Response(
-        JSON.stringify({
-          response: fallbackResponses[personaId] || fallbackResponses['health-coach']
-        }),
+      return jsonResponse(
         {
-          status: 200,
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          error: "Gemini returned no content",
+          response: fallbackResponses[personaId] || fallbackResponses['health-coach'],
         },
+        502,
+        originHeader,
       );
     }
 
-    return new Response(
-      JSON.stringify({ response: candidateText }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse({ response: candidateText }, 200, originHeader);
   } catch (error) {
     console.error("[PersonaChat] Unexpected error:", error);
     
@@ -398,14 +375,6 @@ Deno.serve(async (req: Request) => {
       }
     }
     
-    return new Response(
-      JSON.stringify({
-        response: errorMessage,
-      }),
-      {
-        status: 200,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      },
-    );
+    return jsonResponse({ error: "Server error", response: errorMessage }, 500, originHeader);
   }
 });

@@ -21,6 +21,7 @@ const DashboardProgressRoute = lazy(() => import('./DashboardProgressRoute'));
 const DashboardActivitiesRoute = lazy(() => import('./DashboardActivitiesRoute'));
 const OnboardingRoute = lazy(() => import('./OnboardingRoute'));
 const PersonaChatModalRoute = lazy(() => import('./PersonaChatModalRoute'));
+const NotFoundRoute = lazy(() => import('./NotFoundRoute'));
 
 /**
  * Main route configuration
@@ -85,7 +86,15 @@ export const routes: RouteObject[] = [
           </ProtectedRoute>
         ),
       },
+      {
+        path: '*',
+        element: <NotFoundRoute />,
+      },
     ],
+  },
+  {
+    path: '*',
+    element: <NotFoundRoute />,
   },
 ];
 

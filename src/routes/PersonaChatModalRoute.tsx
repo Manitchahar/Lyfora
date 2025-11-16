@@ -82,12 +82,8 @@ export function PersonaChatModalRoute() {
   }
 
   return (
-    <ModalRoute title="" size="lg" showCloseButton={true}>
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <div className="w-full max-w-3xl">
-          <PersonaChat persona={persona} />
-        </div>
-      </div>
+    <ModalRoute title="" size="lg" showCloseButton={false}>
+      <PersonaChat persona={persona} onClose={() => navigate(-1)} />
     </ModalRoute>
   );
 }

@@ -5,10 +5,10 @@ Script to run Supabase database migrations
 import os
 import sys
 
-# Supabase connection details
-SUPABASE_URL = "https://hvqszwkacdfumdoeapti.supabase.co"
-SUPABASE_KEY = os.environ.get("SUPABASE_KEY")  # You'll need to set this
-DB_PASSWORD = os.environ.get("SUPABASE_DB_PASSWORD")  # You'll need to set this
+# Supabase connection details - set these as environment variables
+SUPABASE_URL = os.environ.get("VITE_SUPABASE_URL")
+SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
+DB_PASSWORD = os.environ.get("SUPABASE_DB_PASSWORD")
 
 def run_migration():
     """Read and execute the migration SQL"""

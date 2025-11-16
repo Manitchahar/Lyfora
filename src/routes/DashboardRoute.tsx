@@ -7,18 +7,22 @@
  * Requirements: 2.3, 3.2, 8.5, 10.3, 10.4, 11.1, 5.1, 5.5, 6.3, 6.4
  */
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useNavigate, Outlet } from 'react-router-dom';
-import { supabase } from '../lib/supabase';
 import { NavBar } from '../components/Navigation/NavBar';
 import { WellnessAssistant } from '../components/Dashboard/WellnessAssistant';
 import { PageTransition } from '../components/PageTransition';
+import { useRouteLoading } from '../contexts/RouteLoadingContext';
+import { useWellnessProfile } from '../hooks/useWellnessProfile';
+import { useToast } from '../design-system/components';
 
 export function DashboardRoute() {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [hasProfile, setHasProfile] = useState<boolean | null>(null);
+  const toast = useToast();
+  const { withLoader } = useRouteLoading();
+  const { hasProfile, refreshProfile } = useWellnessProfile(user?.id);
 
   useEffect(() => {
     if (!user) {
@@ -26,26 +30,29 @@ export function DashboardRoute() {
       return;
     }
 
-    checkProfile();
-  }, [user, navigate]);
+    let isMounted = true;
 
-  const checkProfile = async () => {
-    if (!user) return;
+    withLoader(refreshProfile)
+      .then((profileExists) => {
+        if (!isMounted) {
+          return;
+        }
+        if (profileExists === false) {
+          navigate('/onboarding', { replace: true });
+        }
+      })
+      .catch((error) => {
+        if (!isMounted) {
+          return;
+        }
+        console.error('Failed to load wellness profile', error);
+        toast.error('Unable to load your wellness profile. Please try again.');
+      });
 
-    const { data } = await supabase
-      .from('wellness_profiles')
-      .select('id')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    const profileExists = !!data;
-    setHasProfile(profileExists);
-
-    // Redirect to onboarding if no profile exists
-    if (!profileExists) {
-      navigate('/onboarding', { replace: true });
-    }
-  };
+    return () => {
+      isMounted = false;
+    };
+  }, [user, navigate, refreshProfile, withLoader, toast]);
 
   // Show loading state while checking profile - Requirements: 8.5
   if (hasProfile === null) {

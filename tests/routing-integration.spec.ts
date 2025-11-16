@@ -385,10 +385,9 @@ test.describe('Routing Integration Tests', () => {
       await page.waitForLoadState('networkidle');
       await page.waitForTimeout(1000);
       
-      // Should show 404 or redirect to home
-      // Verify page doesn't crash
-      const body = page.locator('body');
-      await expect(body).toBeVisible();
+      // Should show the 404 not found experience
+      await expect(page.locator('text=We can\'t find that page')).toBeVisible();
+      await expect(page.locator('role=link[name="Back to home"]')).toBeVisible();
     });
   });
   

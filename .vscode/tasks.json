@@ -2,29 +2,25 @@
 	"version": "2.0.0",
 	"tasks": [
 		{
-			"label": "set-gemini-secret",
+			"label": "Deploy Supabase Functions",
 			"type": "shell",
-			"command": "supabase"
-		},
-		{
-			"label": "set-gemini-secret",
-			"type": "shell",
-			"command": "supabase",
+			"command": "npx",
 			"args": [
-				"secrets",
-				"set",
-				"GEMINI_API_KEY=AIzaSyDc2f40G3xGuPh9AxCJr2l4OwxCbLaGM00"
+				"supabase",
+				"functions",
+				"deploy",
+				"persona-chat"
 			]
 		},
 		{
-			"label": "set-gemini-secret",
+			"label": "Set Gemini Secret",
 			"type": "shell",
 			"command": "npx",
 			"args": [
 				"supabase",
 				"secrets",
 				"set",
-				"GEMINI_API_KEY=AIzaSyDc2f40G3xGuPh9AxCJr2l4OwxCbLaGM00"
+				"GEMINI_API_KEY=<your-api-key>"
 			]
 		}
 	]

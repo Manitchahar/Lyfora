@@ -10,9 +10,16 @@ interface PersonaGalleryProps {
 export default function PersonaGallery({ onPersonaSelect }: PersonaGalleryProps) {
   const navigateToModal = useModalNavigation();
   const cardRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  const lastInteractionRef = useRef(0);
 
   // Memoize click handler to prevent unnecessary re-renders (Requirement 17.3)
   const handlePersonaClick = useCallback((persona: Persona) => {
+    const now = Date.now();
+    if (now - lastInteractionRef.current < 600) {
+      return;
+    }
+    lastInteractionRef.current = now;
+
     // Store the triggering element for focus restoration (Requirement 7.4)
     const cardElement = cardRefs.current.get(persona.id);
     if (cardElement) {

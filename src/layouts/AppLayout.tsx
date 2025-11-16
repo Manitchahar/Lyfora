@@ -12,10 +12,12 @@ import { useEffect, useRef } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { ErrorBoundary, ToastProvider } from '../design-system/components';
 import { SkipToContent } from '../components/SkipToContent';
+import { useRouteLoading } from '../contexts/RouteLoadingContext';
 
 export function AppLayout() {
   const location = useLocation();
   const announceRef = useRef<HTMLDivElement>(null);
+  const { isLoading } = useRouteLoading();
 
   /**
    * Scroll to top on route change
@@ -31,11 +33,12 @@ export function AppLayout() {
    */
   useEffect(() => {
     if (announceRef.current) {
-      // Get a readable page name from the pathname
       const pageName = getPageName(location.pathname);
-      announceRef.current.textContent = `Navigated to ${pageName}`;
+      announceRef.current.textContent = isLoading
+        ? `Loading ${pageName}`
+        : `Navigated to ${pageName}`;
     }
-  }, [location.pathname]);
+  }, [location.pathname, isLoading]);
 
   return (
     <ErrorBoundary>

@@ -48,18 +48,6 @@ export function AuthRoute({ mode }: AuthRouteProps) {
     }
   }, [user, navigate, location]);
 
-  /**
-   * Handle mode toggle using React Router navigation
-   * Requirements: 5.1, 6.1
-   */
-  const handleToggleMode = () => {
-    if (mode === 'login') {
-      navigate('/signup');
-    } else {
-      navigate('/login');
-    }
-  };
-
   return (
     <PageTransition>
       <AuthLayout>
@@ -73,11 +61,7 @@ export function AuthRoute({ mode }: AuthRouteProps) {
             exit="exit"
             transition={pageTransition}
           >
-            {mode === 'login' ? (
-              <LoginForm onToggleMode={handleToggleMode} />
-            ) : (
-              <SignUpForm onToggleMode={handleToggleMode} />
-            )}
+            {mode === 'login' ? <LoginForm /> : <SignUpForm />}
           </motion.div>
         </AnimatePresence>
       </AuthLayout>
