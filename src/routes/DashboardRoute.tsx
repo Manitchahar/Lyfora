@@ -9,7 +9,8 @@
 
 import { useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
-import { useNavigate, Outlet } from 'react-router-dom';
+import { useNavigate, useLocation, useOutlet } from 'react-router-dom';
+import { AnimatePresence } from 'framer-motion';
 import { NavBar } from '../components/Navigation/NavBar';
 import { WellnessAssistant } from '../components/Dashboard/WellnessAssistant';
 import { PageTransition } from '../components/PageTransition';
@@ -20,6 +21,8 @@ import { useToast } from '../design-system/components';
 export function DashboardRoute() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const element = useOutlet();
   const toast = useToast();
   const { withLoader } = useRouteLoading();
   const { hasProfile, refreshProfile } = useWellnessProfile(user?.id);
@@ -73,13 +76,18 @@ export function DashboardRoute() {
         <NavBar />
 
         {/* Main Content - Requirements: 10.3, 10.4, 11.1, 14.8 */}
-        <main 
-          id="main-content" 
+        <main
+          id="main-content"
           className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12"
           role="main"
         >
           {/* Nested routes render here - Requirements: 5.1, 5.5, 6.3, 6.4, 12.1, 12.2 */}
-          <Outlet />
+          {/* Nested routes render here - Requirements: 5.1, 5.5, 6.3, 6.4, 12.1, 12.2 */}
+          <AnimatePresence mode="wait" initial={false}>
+            <div key={location.pathname}>
+              {element}
+            </div>
+          </AnimatePresence>
         </main>
 
         <WellnessAssistant />

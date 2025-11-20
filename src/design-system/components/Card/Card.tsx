@@ -9,8 +9,9 @@
  */
 
 import React from 'react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 
-export interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
+export interface CardProps extends Omit<HTMLMotionProps<"div">, "children"> {
   /** Visual variant of the card */
   variant?: 'elevated' | 'outlined' | 'filled';
   /** Padding size variant */
@@ -88,9 +89,10 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     // Hoverable styles - Requirement 12.4: Respect prefers-reduced-motion
     const hoverStyles = hoverable
       ? [
-          'cursor-pointer',
-          'motion-safe:hover:scale-[1.01]',
-        ]
+        'cursor-pointer',
+        'cursor-pointer',
+        // 'motion-safe:hover:scale-[1.01]', // Replaced by framer-motion
+      ]
       : [];
 
     // Combine all styles
@@ -103,13 +105,15 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
     ].join(' ');
 
     return (
-      <div
+      <motion.div
         ref={ref}
         className={cardClasses}
+        whileHover={hoverable ? { scale: 1.01, y: -2 } : undefined}
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
         {...props}
       >
         {children}
-      </div>
+      </motion.div>
     );
   }
 );

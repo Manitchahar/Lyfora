@@ -73,6 +73,15 @@ export const Modal: React.FC<ModalProps> = ({
     exit: { opacity: 0, scale: 0.95, y: 20 },
   };
 
+  // Mobile-specific variants (slide up from bottom)
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+
+  const finalContentVariants = isMobile ? {
+    initial: { opacity: 0, y: '100%' },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: '100%' },
+  } : contentVariants;
+
   // Transition settings
   const transition = {
     duration: 0.2,
@@ -102,16 +111,17 @@ export const Modal: React.FC<ModalProps> = ({
               <motion.div
                 className={`
                   fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2
-                  w-full ${sizeStyles[size]} max-h-[90vh]
+                  w-full ${sizeStyles[size]} 
+                  max-h-[100dvh] sm:max-h-[90vh] h-full sm:h-auto
                   bg-white dark:bg-neutral-800
-                  rounded-2xl shadow-xl
-                  p-6
+                  sm:rounded-2xl shadow-xl
+                  p-4 sm:p-6
                   overflow-y-auto
                   z-50
                   focus:outline-none
                   ${className}
                 `}
-                variants={contentVariants}
+                variants={finalContentVariants}
                 initial="initial"
                 animate="animate"
                 exit="exit"

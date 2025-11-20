@@ -32,18 +32,18 @@ function LoadingFallback() {
  */
 function App() {
   const location = useLocation();
-  
+
   // Check if we have a background location (for modal routes)
   const state = location.state as { backgroundLocation?: Location } | null;
   const backgroundLocation = state?.backgroundLocation;
-  
+
   // Determine which location to use for routing
   const routeLocation = backgroundLocation || location;
-  
+
   // Render routes with background location if modal is open
   const element = useRoutes(routes, routeLocation);
   const modalElement = backgroundLocation ? useRoutes(routes, location) : null;
-  
+
   return (
     <>
       {/* 
@@ -54,7 +54,7 @@ function App() {
         - Key based on pathname for proper transition detection
       */}
       <AnimatePresence mode="wait" initial={false}>
-        <div key={routeLocation.pathname}>
+        <div key={routeLocation.pathname.split('/')[1] || 'home'}>
           {element}
         </div>
       </AnimatePresence>

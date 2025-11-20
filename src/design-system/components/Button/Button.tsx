@@ -10,8 +10,9 @@
 
 import React from 'react';
 import { Loader2 } from 'lucide-react';
+import { motion, HTMLMotionProps } from 'framer-motion';
 
-export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ButtonProps extends Omit<HTMLMotionProps<"button">, "children"> {
   /** Visual variant of the button */
   variant?: 'primary' | 'secondary' | 'tertiary' | 'ghost';
   /** Size variant with proper padding and typography */
@@ -69,8 +70,8 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       'disabled:opacity-50',
       'disabled:cursor-not-allowed',
       'disabled:pointer-events-none',
-      'motion-safe:hover:scale-[1.02]', // Requirement 12.4: Respect prefers-reduced-motion
-      'motion-safe:active:scale-[0.98]',
+      // 'motion-safe:hover:scale-[1.02]', // Replaced by framer-motion
+      // 'motion-safe:active:scale-[0.98]', // Replaced by framer-motion
     ];
 
     // Variant styles
@@ -134,19 +135,22 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const isDisabled = disabled || loading;
 
     return (
-      <button
+      <motion.button
         ref={ref}
-        type={type}
+        type={type as "button" | "submit" | "reset"}
         disabled={isDisabled}
         className={buttonClasses}
         aria-busy={loading}
         aria-disabled={isDisabled}
+        whileHover={{ scale: isDisabled ? 1 : 1.02 }}
+        whileTap={{ scale: isDisabled ? 1 : 0.98 }}
+        transition={{ type: "spring", stiffness: 400, damping: 17 }}
         {...props}
       >
         {loading ? (
           <>
-            <Loader2 
-              className="animate-spin" 
+            <Loader2
+              className="animate-spin"
               size={size === 'sm' ? 16 : size === 'lg' ? 20 : 18}
               aria-hidden="true"
             />
@@ -156,7 +160,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
           <span aria-hidden="true">{icon}</span>
         ) : null}
         {children && <span>{children}</span>}
-      </button>
+      </motion.button>
     );
   }
 );
